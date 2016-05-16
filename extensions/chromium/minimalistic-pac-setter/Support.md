@@ -33,20 +33,20 @@
 ## Как сообщить о проблеме
 
 1. Убедитесь, что сайт вообще работает для остального мира:
-  a. https://www.host-tracker.com/ru/InstantCheck/Create
-  b. http://isup.me
+   a. https://www.host-tracker.com/ru/InstantCheck/Create
+   b. http://isup.me
 2. Убедитесь что сайт недоступен для вас:
-  1) не открывается в браузере Google Хром, в другом браузере
-  2) из операционной системы: `ping proxy.antizapret.prostovpn.org`
+   1) не открывается в браузере Google Хром, в другом браузере
+   2) из операционной системы: `ping proxy.antizapret.prostovpn.org`
 3. Проверьте реестр блокировок: http://reestr.rublacklist.net (ищем закрытые замочки)
 4. Если сайта нет в реестре, то расширение ни при чём, сообщите о блокировке в РосКомСвободу:
      http://reestr.rublacklist.net/messages/add
    По этой же ссылке можно проверить официальные реестры. Если сайт не числится в реестрах, то можете узнать у провайдера причину блокировки.
 5. Подготовьте описание проблемы, сообщения об ошибках.
 6. Спросите в одном из сообществ:
-  * Реддит: https://www.reddit.com/r/anticensorship_russia
-  * [Google+](https://plus.google.com/communities/113037048541138220990/stream/0840196a-f974-4cc6-9c6d-060a7747b6bf).
-  * GitHub: https://github.com/ilyaigpetrov/anti-censorship-russia/issues
+   * Реддит: https://www.reddit.com/r/anticensorship_russia
+   * [Google+](https://plus.google.com/communities/113037048541138220990/stream/0840196a-f974-4cc6-9c6d-060a7747b6bf).
+   * GitHub: https://github.com/ilyaigpetrov/anti-censorship-russia/issues
 7. Или отправьте описание проблемы мне на почту ilyaigpetrov+anticensure+chrome@gmail.com
 
 ________
