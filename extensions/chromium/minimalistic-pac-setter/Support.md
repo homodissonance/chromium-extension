@@ -49,9 +49,11 @@
 
 5. Подготовьте описание проблемы, сообщения об ошибках.
 6. Спросите в одном из сообществ:
+   * Почтовая группа Google: https://groups.google.com/forum/#!forum/anticensorship-russia
+   * Письмом на anticensorship-russia@googlegroups.com
+   * GitHub: https://github.com/anticensorship-russia/chromium-extension/issues
    * Реддит: https://www.reddit.com/r/anticensorship_russia
    * [Google+](https://plus.google.com/communities/113037048541138220990/stream/0840196a-f974-4cc6-9c6d-060a7747b6bf).
-   * GitHub: https://github.com/ilyaigpetrov/anti-censorship-russia/issues
 7. Или отправьте описание проблемы мне на почту: ilyaigpetrov+anticensure+chrome@gmail.com
 
 ________
