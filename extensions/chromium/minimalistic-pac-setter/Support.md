@@ -54,7 +54,6 @@
    * GitHub: https://github.com/anticensorship-russia/chromium-extension/issues
    * Реддит: https://www.reddit.com/r/anticensorship_russia
    * [Google+](https://plus.google.com/communities/113037048541138220990/stream/0840196a-f974-4cc6-9c6d-060a7747b6bf).
-7. Или отправьте описание проблемы мне на почту: ilyaigpetrov+anticensure+chrome@gmail.com
 
 ________
 
