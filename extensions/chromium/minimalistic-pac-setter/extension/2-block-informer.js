@@ -12,6 +12,10 @@
   Crazy parallel Chrome.
 **/
 
+window.chrome.browserAction.setBadgeBackgroundColor({
+  color: '#D00000'
+});
+
 window.tabWithError2ip = {}; // For errors only: Error? -> Check this IP!
 
 function createLink(url) {
