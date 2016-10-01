@@ -66,6 +66,14 @@ window.antiCensorRu = {
 
   _periodicUpdateAlarmReason: 'Периодичное обновление PAC-скрипта Антизапрет',
 
+  customHosts: {
+    ifEnabled: true,
+    hash: {
+      'archive.org': true,
+      'bitcoin.org': true
+    }
+  },
+
   pushToStorage(cb) {
 
     console.log('Pushing to storage...');
@@ -208,6 +216,10 @@ chrome.storage.local.get(null, (oldStorage) => {
     antiCensorRu._currentPacProviderKey = oldStorage._currentPacProviderKey;
     antiCensorRu.lastPacUpdateStamp = oldStorage.lastPacUpdateStamp || antiCensorRu.lastPacUpdateStamp;
     console.log( 'Last PAC update was on', new Date(antiCensorRu.lastPacUpdateStamp).toLocaleString('ru-RU') );
+    const customHosts = oldStorage.customHosts;
+    if (customHosts) {
+      antiCensorRu.customHosts = customHosts;
+    }
   }
 
   chrome.alarms.onAlarm.addListener(
@@ -259,6 +271,10 @@ chrome.storage.local.get(null, (oldStorage) => {
 
     History of Changes to Storage (Migration Guide)
     -----------------------------------------------
+
+    Version 0.0.0.15
+
+      * Added this.customHosts
 
     Version 0.0.0.10
 

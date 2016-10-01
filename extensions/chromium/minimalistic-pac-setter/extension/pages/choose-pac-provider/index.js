@@ -15,9 +15,9 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
       status.classList.add('off');
   }
 
-  var antiCensorRu = backgroundPage.antiCensorRu;
+  const antiCensorRu = backgroundPage.antiCensorRu;
 
-  // SET DATE
+  // Set update date
 
   function setDate() {
     var dateForUser = 'никогда';
@@ -51,11 +51,11 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
   setDate();
   chrome.storage.onChanged.addListener( changes => changes.lastPacUpdateStamp.newValue && setDate() );
 
-  // CLOSE BUTTON
+  // Close button
 
   document.querySelector('.close-button').onclick = () => window.close();
 
-  // RADIOS
+  // Radios
 
   var currentRadio = () => {
     var id = antiCensorRu.currentPacProviderKey || 'none';
@@ -96,7 +96,10 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
       enableDisableInputs();
       setStatusTo('Установка...');
       antiCensorRu.installPac(pacKey, (err) => {
-        if (err) {
+        if (!err) {
+          setStatusTo('PAC-скрипт установлен.');
+        }
+        else {
           var ifNotCritical = err.clarification && err.clarification.ifNotCritical;
 
           var message = '';
@@ -127,8 +130,7 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
             }
             return false;
           };
-        } else
-          setStatusTo('PAC-скрипт установлен.');
+        };
         enableDisableInputs();
       });
     }
@@ -136,7 +138,86 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
 
   setStatusTo('');
   checkChosenProvider();
-  if (antiCensorRu.ifFirstInstall)
+  if (antiCensorRu.ifFirstInstall) {
     triggerChosenProvider();
+  }
+
+  // Custom hosts
+
+  if ( !antiCensorRu.customHosts.ifEnabled ) {
+    return;
+  }
+
+  document.querySelector('#proxy-also').checked = true;
+
+  const removeCustomHost = function () {
+
+    const li = this.parentNode;
+    const host = li.querySelector('span').innerText;
+    li.remove();
+    delete antiCensorRu.customHosts.hash[ punycode.toASCII( host ) ];
+    antiCensorRu.pushToStorage();
+    return false;
+
+  };
+
+  const appendHost = (host) => {
+
+    const li = document.createElement('li');
+    li.innerHTML = '<span>' + punycode.toUnicode( host ) + '</span> <a href style="float: right">[удалить]</a>';
+    document.querySelector('#custom-hosts-list').appendChild(li);
+    li.querySelector('a').onclick = removeCustomHost;
+
+  };
+
+  for( let host of Object.keys( antiCensorRu.customHosts.hash ).sort() ) {
+    appendHost( host );
+  }
+
+  const hostToAdd = document.querySelector('#host-to-add');
+
+  const handleHostname = (userInput) => {
+
+    // If no protocol, assume http.
+    if (! /^[^:]+:\/\//.test( userInput ) ) {
+      userInput = 'http://' + userInput;
+    }
+    return new URL( userInput ).hostname;
+  };
+
+  hostToAdd.onpaste = function (ev) {
+
+    // Stop data actually being pasted into div
+    ev.stopPropagation();
+    ev.preventDefault();
+
+    // Get pasted data via clipboard API
+    let clipboardData = ev.clipboardData || window.clipboardData;
+    let pastedData = clipboardData.getData('Text');
+
+    this.value = punycode.toUnicode( handleHostname( pastedData ) );
+    return false;
+
+  };
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabArray) => {
+
+    const tab = tabArray.pop();
+    if ( !tab || tab.url.startsWith('chrom') ) {
+      return;
+    }
+    hostToAdd.value = punycode.toUnicode( new URL( tab.url ).hostname.replace(/^www./, '') );
+
+  });
+
+  document.querySelector('#add-host-button').onclick = () => {
+
+    const punyHost = handleHostname( hostToAdd.value );
+    appendHost( punyHost );
+    antiCensorRu.customHosts.hash[ punyHost ] = true;
+    antiCensorRu.pushToStorage();
+    // TODO: bbbbbb
+
+  };
 
 });

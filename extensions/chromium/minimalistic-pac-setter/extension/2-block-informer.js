@@ -18,12 +18,6 @@ window.chrome.browserAction.setBadgeBackgroundColor({
 
 window.tabWithError2ip = {}; // For errors only: Error? -> Check this IP!
 
-function createLink(url) {
-  const a = document.createElement('a');
-  a.href = url;
-  return a;
-}
-
 +function() {
 
   var _tabCallbacks = {};
@@ -87,7 +81,7 @@ function createLink(url) {
           var ifTitleSetAlready = /\n/.test(title);
           var proxyHost = window.antiCensorRu.pacProvider.proxyIps[ requestDetails.ip ];
 
-          var hostname = createLink( requestDetails.url ).hostname;
+          var hostname = new URL( requestDetails.url ).hostname;
 
           var ifShouldUpdateTitle = false;
           var indent = '  ';

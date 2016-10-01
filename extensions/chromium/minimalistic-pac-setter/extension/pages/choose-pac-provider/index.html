@@ -18,6 +18,8 @@
       }
       input[type="radio"], label {
         cursor: pointer;
+        -webkit-user-select: none;
+        user-select: none;
       }
       .off {
         display: none;
@@ -30,27 +32,88 @@
         text-decoration: underline;
       }
       .checked-radio-panel {
-        display: none;
+        visibility: hidden;
       }
       input:checked ~ .checked-radio-panel {
-        display: inline;
+        visibility: visible;
       }
       .button-panel {
         margin-top: 1em;
       }
+      #proxy-also:not(:checked) ~ .custom-hosts-panel {
+        display: none;
+      }
+      .custom-hosts-panel input,
+      .custom-hosts-panel button {
+        border-radius: 0;
+        padding: 0 0 0 0.2em;
+        margin: 0;
+      }
+      .custom-hosts-panel input {
+        border-right: 0;
+      }
+      #custom-hosts-list {
+        margin: 0;
+        padding: 0;
+      }
+      #custom-hosts-list li:nth-child(odd) {
+        background: #eee;
+      }
+
+      fieldset {
+        border: solid #558abb;
+        border-width: 0 0 0 0px;
+        margin-bottom: 1em;
+        padding-left: 0;
+      }
+      fieldset > * {
+        /*margin-left: 1em;*/
+      }
+      fieldset h4 {
+        margin: 0 0 0.5em 1em;
+      }
+      fieldset hr {
+        border: solid 1px #558abb;
+        border-width: 1px 0 0 0;
+        margin: 0 0 1em 0;
+      }
     </style>
   </head>
   <body>
-    <ul id="list-of-providers">
-      <li><input type="radio" name="pacProvider" id="none" checked> <label for="none">Отключить</label></li>
-    </ul>
-    <div style="white-space: nowrap">
-      Обновлялись: <span class="update-date">...</span>
-    </div>
-    <div id="status">Загрузка...</div>
+    <fieldset>
+      <h4>PAC-скрипт</h4>
+      <hr/>
+
+      <ul id="list-of-providers">
+        <li><input type="radio" name="pacProvider" id="none" checked> <label for="none">Отключить</label></li>
+      </ul>
+      <div style="white-space: nowrap">
+        Обновлялись: <span class="update-date">...</span>
+      </div>
+      <div id="status">Загрузка...</div>
+
+    </fieldset>
+
+    <fieldset>
+      <input type="checkbox" name="proxy-also" id="proxy-also" style="height: 1em; width: 1em"/>
+      <h4 style="display: inline-block; margin-left: 0"><label for="proxy-also">Также проксировать</label></h4>
+      <hr/>
+
+      <div class="custom-hosts-panel">
+        <div style="display: flex; font-size: 0.9em;">
+          <input style="width: 100%" placeholder="archive.org" id="host-to-add">
+          <button id="add-host-button">+</button>
+        </div>
+        <ol id="custom-hosts-list"></ol>
+      </div>
+
+    </fieldset>
+
     <div class="button-panel">
       <input type="button" value="Готово" class="close-button">
     </div>
-    <script src="./index.js"></script>
+
+    <script src="./lib/punycode.min.js" defer></script>
+    <script src="./index.js" defer></script>
   </body>
 </html>
