@@ -31,10 +31,10 @@
       .link-button:hover {
         text-decoration: underline;
       }
-      .checked-radio-panel {
+      .pac-radio-button {
         visibility: hidden;
       }
-      input:checked ~ .checked-radio-panel {
+      input:checked ~ .pac-radio-button {
         visibility: visible;
       }
       .button-panel {
@@ -52,11 +52,11 @@
       .custom-hosts-panel input {
         border-right: 0;
       }
-      #custom-hosts-list {
+      #list-of-custom-hosts {
         margin: 0;
         padding: 0;
       }
-      #custom-hosts-list li:nth-child(odd) {
+      #list-of-custom-hosts li:nth-child(odd) {
         background: #eee;
       }
 
@@ -77,10 +77,14 @@
         border-width: 1px 0 0 0;
         margin: 0 0 1em 0;
       }
+      #custom-hosts-settings {
+        display: none;
+      }
     </style>
   </head>
   <body>
-    <fieldset>
+    <fieldset id="pac-provider-settings">
+
       <h4>PAC-скрипт</h4>
       <hr/>
 
@@ -94,7 +98,8 @@
 
     </fieldset>
 
-    <fieldset>
+    <fieldset id="custom-hosts-settings">
+
       <input type="checkbox" name="proxy-also" id="proxy-also" style="height: 1em; width: 1em"/>
       <h4 style="display: inline-block; margin-left: 0"><label for="proxy-also">Также проксировать</label></h4>
       <hr/>
@@ -104,7 +109,7 @@
           <input style="width: 100%" placeholder="archive.org" id="host-to-add">
           <button id="add-host-button">+</button>
         </div>
-        <ol id="custom-hosts-list"></ol>
+        <ol id="list-of-custom-hosts"></ol>
       </div>
 
     </fieldset>

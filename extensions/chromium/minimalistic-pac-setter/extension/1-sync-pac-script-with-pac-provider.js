@@ -36,13 +36,13 @@ window.antiCensorRu = {
     },
     Оба_и_на_свитчах: {
       pacUrl: 'https://drive.google.com/uc?export=download&id=0B-ZCVSvuNWf0akpCOURNS2VCTmc',
-      //pacUrl: 'https://drive.google.com/uc?export=download&id=0B-ZCVSvuNWf0WGczNmJzY3gzMWc', // Beta
       proxyHosts: ['proxy.antizapret.prostovpn.org', 'gw2.anticenz.org'],
       proxyIps: {
         '195.123.209.38': 'proxy.antizapret.prostovpn.org',
         '2a02:27ac::10':  'proxy.antizapret.prostovpn.org',
         '5.196.220.114':  'gw2.anticenz.org'
-      }
+      },
+      ifCustomizable: true
     }
   },
 
@@ -254,7 +254,17 @@ chrome.storage.local.get(null, (oldStorage) => {
 
   if (antiCensorRu.version === oldStorage.version) {
     // LAUNCH, RELOAD, ENABLE
-    antiCensorRu.pacProviders = oldStorage.pacProviders;
+    // Merge old proxy ips.
+    for( const prName in oldStorage.pacProviders ) {
+
+      const newIps = antiCensorRu.pacProviders[ prName ].proxyIps;
+      const oldIps = oldStorage.pacProviders[ prName ].proxyIps;
+      for( const oldIp in oldIps ) {
+        if( !newIps[ oldIp ] ) {
+          newIps[ oldIp ] = oldIps[ oldIp ];
+        }
+      }
+    }
     return console.log('Extension launched, reloaded or enabled.');
   }
 
@@ -275,6 +285,7 @@ chrome.storage.local.get(null, (oldStorage) => {
     Version 0.0.0.15
 
       * Added this.customHosts
+      * Added this.pacProviders[ some ].ifCustomizable
 
     Version 0.0.0.10
 
@@ -299,6 +310,7 @@ function asyncLogGroup() {
     console.groupEnd();
     console.log('Group finished.');
     return cb.apply(this, arguments);
+
   }
 }
 

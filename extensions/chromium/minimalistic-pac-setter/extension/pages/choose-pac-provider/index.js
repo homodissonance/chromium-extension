@@ -1,30 +1,31 @@
 'use strict';
 
-chrome.runtime.getBackgroundPage( backgroundPage => {
+chrome.runtime.getBackgroundPage( (backgroundPage) => {
 
-  function getStatus() {
-    return document.querySelector('#status');
-  }
+  const getStatus = () => document.querySelector('#status');
 
-  function setStatusTo(msg) {
-    var status = getStatus();
-    if (msg) {
-      status.classList.remove('off');
-      status.innerHTML = msg;
-    } else
-      status.classList.add('off');
+  const setStatusTo = function (msg) {
+
+    const status = getStatus();
+    if (!msg) {
+      return status.classList.add('off');
+    }
+    status.classList.remove('off');
+    status.innerHTML = msg;
+
   }
 
   const antiCensorRu = backgroundPage.antiCensorRu;
 
   // Set update date
 
-  function setDate() {
-    var dateForUser = 'никогда';
+  const setDate = function () {
+
+    let dateForUser = 'никогда';
     if( antiCensorRu.lastPacUpdateStamp ) {
-      var diff = Date.now() - antiCensorRu.lastPacUpdateStamp;
-      var units = ' мс';
-      var gauges = [
+      let diff = Date.now() - antiCensorRu.lastPacUpdateStamp;
+      let units = ' мс';
+      const gauges = [
         [1000, ' с'],
         [60, ' мин'],
         [60, ' ч'],
@@ -33,23 +34,24 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
         [4, ' месяцев'],
         [12, ' г']
       ];
-      for(var g of gauges) {
-        var diffy = Math.floor(diff / g[0]);
+      for(const g of gauges) {
+        const diffy = Math.floor(diff / g[0]);
         if (!diffy)
           break;
         diff = diffy;
-        var units = g[1];
+        units = g[1];
       }
       dateForUser = diff + units + ' назад';
     }
 
-    var dateElement = document.querySelector('.update-date');
+    const dateElement = document.querySelector('.update-date');
     dateElement.innerText = dateForUser;
     dateElement.title = new Date(antiCensorRu.lastPacUpdateStamp).toLocaleString('ru-RU');
-  }
+
+  };
 
   setDate();
-  chrome.storage.onChanged.addListener( changes => changes.lastPacUpdateStamp.newValue && setDate() );
+  chrome.storage.onChanged.addListener( (changes) => changes.lastPacUpdateStamp.newValue && setDate() );
 
   // Close button
 
@@ -57,53 +59,80 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
 
   // Radios
 
-  var currentRadio = () => {
-    var id = antiCensorRu.currentPacProviderKey || 'none';
-    return document.querySelector('#'+id);
-  }
-  var checkChosenProvider = () => {
-    var radio = currentRadio();
+  const chosenRadio = () => {
+
+    const id = antiCensorRu.currentPacProviderKey || 'none';
+    return document.querySelector('#' + id);
+
+  };
+  const checkChosenProvider = () => {
+
+    const radio = chosenRadio();
     radio.checked = true;
-  }
-  var triggerChosenProvider = () => {
-    var event = document.createEvent('HTMLEvents');
+
+    // On/off site exceptions.
+
+    const providerName = radio.id;
+    const exceptionsStyle = document.querySelector('#custom-hosts-settings').style;
+    if ( providerName !== 'none' && antiCensorRu.pacProviders[ providerName ].ifCustomizable ) {
+      exceptionsStyle.display = 'block';
+    }
+    else {
+      exceptionsStyle.display = 'none';
+    }
+
+  };
+  const triggerChosenProvider = () => {
+
+    const event = document.createEvent('HTMLEvents');
     event.initEvent('change', false, true);
-    currentRadio().dispatchEvent(event);
-  }
+    chosenRadio().dispatchEvent(event);
+
+  };
 
   var ul = document.querySelector('#list-of-providers');
   var _firstChild = ul.firstChild;
-  for( var providerKey of Object.keys(antiCensorRu.pacProviders) ) {
+  for( const providerKey of Object.keys(antiCensorRu.pacProviders) ) {
+
     var li = document.createElement('li');
-    li.innerHTML = '<input type="radio" name="pacProvider" id="'+providerKey+'"> <label for="'+providerKey+'">'+providerKey+'</label> <a href class="link-button checked-radio-panel">[обновить]</a>';
-    li.querySelector('.link-button').onclick = () => {triggerChosenProvider(); return false;};
+    li.innerHTML = `<input type="radio" name="pacProvider" id="${providerKey}"> <label for="${providerKey}">${providerKey}</label> <a href class="link-button pac-update-button">[обновить]</a>`;
+    li.querySelector('.link-button').onclick = () => { triggerChosenProvider(); return false; };
     ul.insertBefore( li, _firstChild );
+
   }
 
-  var radios = [].slice.apply( document.querySelectorAll('[name=pacProvider]') );
-  for(var radio of radios) {
+  const radios = [].slice.apply( document.querySelectorAll('[name=pacProvider]') );
+  for(const radio of radios) {
     radio.onchange = function(event) {
-      var pacKey = event.target.id;
-      if (pacKey === 'none')
-        return antiCensorRu.clearPac();
 
-      function enableDisableInputs() {
-        var inputs = document.querySelectorAll('input');
-        for (var i = 0; i < inputs.length; i++)
+      const cb = checkChosenProvider;
+
+      const pacKey = event.target.id;
+      if (pacKey === 'none') {
+        return antiCensorRu.clearPac( cb );
+      }
+
+      const enableDisableInputs = function () {
+
+        const inputs = document.querySelectorAll('input');
+        for (let i = 0; i < inputs.length; i++) {
           inputs[i].disabled = !inputs[i].disabled;
+        }
+
       }
 
       enableDisableInputs();
       setStatusTo('Установка...');
       antiCensorRu.installPac(pacKey, (err) => {
+
         if (!err) {
           setStatusTo('PAC-скрипт установлен.');
         }
         else {
-          var ifNotCritical = err.clarification && err.clarification.ifNotCritical;
+          const ifNotCritical = err.clarification && err.clarification.ifNotCritical;
 
-          var message = '';
-          var clarification = err.clarification;
+          let message = '';
+          let clarification = err.clarification;
           do {
             message = message +' '+ (clarification && clarification.message || err.message || '');
             clarification = clarification.prev;
@@ -115,8 +144,9 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
 <span style="font-size: 0.9em; color: darkred">${message}</span>
 <a href class="link-button">[Ещё&nbsp;подробнее]</a>`
           );
-          getStatus().querySelector('.link-button').onclick = function() {
-            var div = document.createElement('div');
+          getStatus().querySelector('.link-button').onclick = function () {
+
+            const div = document.createElement('div');
             div.innerHTML = `
 Более подробную информацию можно узнать из логов фоновой страницы:<br/>
 <a href class="ext">chrome://extensions</a> › Это расширение › Отладка страниц: фоновая страница › Console (DevTools)
@@ -125,14 +155,20 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
 `;
             getStatus().replaceChild(div, this);
             div.querySelector('.ext').onclick = () => {
+
               chrome.tabs.create({ url: 'chrome://extensions?id='+ chrome.runtime.id });
               return false;
+
             }
             return false;
+
           };
         };
         enableDisableInputs();
+        return cb();
+
       });
+
     }
   }
 
@@ -165,7 +201,7 @@ chrome.runtime.getBackgroundPage( backgroundPage => {
 
     const li = document.createElement('li');
     li.innerHTML = '<span>' + punycode.toUnicode( host ) + '</span> <a href style="float: right">[удалить]</a>';
-    document.querySelector('#custom-hosts-list').appendChild(li);
+    document.querySelector('#list-of-custom-hosts').appendChild(li);
     li.querySelector('a').onclick = removeCustomHost;
 
   };
