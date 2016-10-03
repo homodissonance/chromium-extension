@@ -3,6 +3,13 @@
   <head>
     <title>Выбор провайдера PAC</title>
     <style>
+      body {/*
+        padding: 0;
+        margin: 0;*/
+      }
+      .accordion-content {
+        margin: 0 1em;
+      }
       ul {
         list-style-type: none;
         padding: 0;
@@ -31,26 +38,20 @@
       .link-button:hover {
         text-decoration: underline;
       }
-      .pac-radio-button {
+      .pac-update-button {
         visibility: hidden;
       }
-      input:checked ~ .pac-radio-button {
+      .accordion-radio:checked ~ .accordion-content input:checked ~ .pac-update-button {
         visibility: visible;
       }
-      .button-panel {
-        margin-top: 1em;
+      #proxy-also {
+        position: relative;
+        z-index: 1;
+        margin-left: 0.7em;
+        margin-top: 0.4em;
       }
       #proxy-also:not(:checked) ~ .custom-hosts-panel {
         display: none;
-      }
-      .custom-hosts-panel input,
-      .custom-hosts-panel button {
-        border-radius: 0;
-        padding: 0 0 0 0.2em;
-        margin: 0;
-      }
-      .custom-hosts-panel input {
-        border-right: 0;
       }
       #list-of-custom-hosts {
         margin: 0;
@@ -60,63 +61,212 @@
         background: #eee;
       }
 
-      fieldset {
+      section {
         border: solid #558abb;
         border-width: 0 0 0 0px;
-        margin-bottom: 1em;
-        padding-left: 0;
+        padding: 0;
       }
-      fieldset > * {
+      section > * {
         /*margin-left: 1em;*/
       }
-      fieldset h4 {
-        margin: 0 0 0.5em 1em;
+      section h4 {
+        margin: 0 0 0.5em 2em;
       }
-      fieldset hr {
-        border: solid 1px #558abb;
-        border-width: 1px 0 0 0;
-        margin: 0 0 1em 0;
+      section hr {
       }
       #custom-hosts-settings {
         display: none;
       }
+      .accordion-radio {
+        display: none
+      }
+      .accordion-radio:not(:checked) ~ .accordion-content {
+        height: 0px !important;
+        line-height: 0px !important;
+        padding: 0;
+        display: block;
+        visibility: hidden;
+      }
+      label {
+        white-space: nowrap;
+      }
+      .accordion-title {
+        display: block;
+        border-bottom: 1px solid #558abb;
+        border-left: 5px solid transparent;
+        margin: 0;
+        position: relative;
+        height: 2em;
+        background-color: white;
+        color: black;
+      }
+      .accordion-title label {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+      }
+      .accordion-title label h4 {
+      }/*
+      .accordion-radio:checked ~ .accordion-title:after,
+      .accordion-title:hover:after {
+        content: '✔';
+        float: right;
+        margin-top: 0.3em;
+        margin-right: 0.5em;
+      }*/
+      .accordion-radio:checked ~ .accordion-title {
+        margin-top: 0.5em;
+      }
+      .accordion-radio:checked ~ .accordion-title,
+      .accordion-title:hover {
+        border-color: #1048ac;/*DarkSlateBlue;*/
+        background-color: DodgerBlue;
+        color: white;
+
+        /* Bg color */
+        /*background-color: #3068cc;  /*#2f7fdf;*/
+        /*color: white;*/
+
+        /* Small icon on the right */
+        /*       
+        background: url("./img/ribbon128.png") right top no-repeat;
+        background-size: contain;
+        */
+
+        /* Icon fragment on the right */
+        /*
+        background: url("./img/ribbon128.png") 100% 20% no-repeat;
+        background-size: 20%;
+        */
+      }
+      .accordion-radio:checked ~ .accordion-content {
+        /*border: 1px solid #3068cc;*/
+      }
+      .accordion-content {
+        padding-top: 0.5em;
+        padding-bottom: 1.5em;
+      }
+      .accordion-content > * {
+        margin-left: 0.4em;
+        margin-right: 0.4em;
+      }
+      .add-string-panel {
+        display: flex;
+        font-size: 0.9em;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      .add-string-panel input {
+        border-right: 0;
+        width: 100%;
+      }
+      .add-string-panel input,
+      .add-string-panel button {
+        border-radius: 0;
+        padding: 0 0 0 0.2em;
+        margin: 0;
+      }
+      .valign-parent { line-height: 100% }
+      .valign-parent:before {
+        height: 100%;
+        content: '';
+      }
+      .valign-parent:before, .valign {
+        display: inline-block;
+        vertical-align: bottom;
+      }
+      footer {
+        margin: 2em 1em 1em;
+      }
     </style>
   </head>
   <body>
-    <fieldset id="pac-provider-settings">
 
-      <h4>PAC-скрипт</h4>
-      <hr/>
+    <section id="pac-provider-settings">
 
-      <ul id="list-of-providers">
-        <li><input type="radio" name="pacProvider" id="none" checked> <label for="none">Отключить</label></li>
-      </ul>
-      <div style="white-space: nowrap">
-        Обновлялись: <span class="update-date">...</span>
+      <input type="radio" name="accordion" id="pac-radio" class="accordion-radio" checked/>
+      <header class='accordion-title'>
+        <label for="pac-radio" class="valign-parent">
+          <h4 class="valign">PAC-скрипт</h4>
+        </label>
+      </header>
+
+      <div class='accordion-content'>
+
+        <ul id="list-of-providers">
+          <li><input type="radio" name="pacProvider" id="none" checked> <label for="none">Отключить</label></li>
+        </ul>
+        <div style="white-space: nowrap">
+          Обновлялись: <span class="update-date">...</span>
+        </div>
+        <div id="status">Загрузка...</div>
+
       </div>
-      <div id="status">Загрузка...</div>
 
-    </fieldset>
+    </section>
 
-    <fieldset id="custom-hosts-settings">
+    <section id="custom-hosts-settings" class="customizable">
 
-      <input type="checkbox" name="proxy-also" id="proxy-also" style="height: 1em; width: 1em"/>
-      <h4 style="display: inline-block; margin-left: 0"><label for="proxy-also">Также проксировать</label></h4>
-      <hr/>
+      <input type="radio" name="accordion" id="hosts-radio" class="accordion-radio"/>
+      <header class='accordion-title'>
+        <input type="checkbox" id="proxy-also"/>
+        <label for="hosts-radio" class="valign-parent">
+          <h4 class="valign">
+            Также проксировать
+          </h4>
+        </label>
+      </header>
 
-      <div class="custom-hosts-panel">
-        <div style="display: flex; font-size: 0.9em;">
-          <input style="width: 100%" placeholder="archive.org" id="host-to-add">
+      <div class="accordion-content custom-hosts-panel">
+        <div class="add-string-panel">
+          <input placeholder="archive.org" id="host-to-add">
           <button id="add-host-button">+</button>
         </div>
         <ol id="list-of-custom-hosts"></ol>
       </div>
 
-    </fieldset>
+    </section>
 
-    <div class="button-panel">
-      <input type="button" value="Готово" class="close-button">
-    </div>
+    <section id="security-settings" class="customizable">
+
+      <input type="radio" name="accordion" id="security-radio" class="accordion-radio"/>
+      <header class='accordion-title'>
+        <label for="security-radio" class="valign-parent">
+          <h4 class="valign">Безопасность</h4>
+        </label>
+      </header>
+
+      <div class="accordion-content">
+        <label for="only-https-proxy"> <input type="checkbox" id="only-https-proxy"/> только HTTPS до прокси</label>
+        <label for="only-https-urls"><input type="checkbox" id="only-https-urls"/> проксировать только HTTPS</label>
+      </div>
+
+    </section>
+
+    <section id="proxy-settings" class="customizable">
+
+      <input type="radio" name="accordion" id="proxy-radio" class="accordion-radio"/>
+      <header class='accordion-title'>
+        <label for="proxy-radio" class="valign-parent">
+          <h4 class="valign">Прокси-сервер</h4>
+        </label>
+      </header>
+
+      <div class="accordion-content">
+        <div class="add-string-panel">
+          <input value="HTTPS blaba.org"/><button>🔌</button>
+        </div>
+      </div>
+
+    </section>
+
+    <footer>
+      <input type="button" value="Закрыть" class="close-button">
+      <a id="debug-link" href style="float: right; text-decoration: none">Отладка</a>
+    </footer>
 
     <script src="./lib/punycode.min.js" defer></script>
     <script src="./index.js" defer></script>

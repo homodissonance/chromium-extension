@@ -42,7 +42,11 @@ window.antiCensorRu = {
         '2a02:27ac::10':  'proxy.antizapret.prostovpn.org',
         '5.196.220.114':  'gw2.anticenz.org'
       },
-      ifCustomizable: true
+      ifCustomizable: true,
+      servers: {
+        PROXY: ['proxy.antizapret.prostovpn.org:3128', 'gw2.anticenz.org:8080'],
+        HTTPS: ['proxy.antizapret.prostovpn.org:3143', 'gw2.anticenz.org:443']
+      }
     }
   },
 
@@ -66,13 +70,36 @@ window.antiCensorRu = {
 
   _periodicUpdateAlarmReason: 'Периодичное обновление PAC-скрипта Антизапрет',
 
-  customHosts: {
-    ifEnabled: true,
-    hash: {
-      'archive.org': true,
-      'bitcoin.org': true
+  customs: {
+    ifHttpsUrlsOnly: false,
+    proxyString: false,
+    exceptions: {
+      ifEnabled: true,
+      hostsHash: {
+        'archive.org': true,
+        'bitcoin.org': true
+      }
+    },
+    proxy: {
+      typesHash: {
+        DIRECT: true,
+        PROXY:  true,
+        HTTP:   true,
+        HTTPS:  true,
+        SOCKS:  true,
+        SOCKS4: true,
+        SOCKS5: true,
+      },
+      isHttpsOnly: function () {
+
+        const types = this.typesHash;
+        return Object.keys(types).every( (t) => t === 'HTTPS' ? types[t] : !types[t] );
+
+      },
+      serversHash: {}
     }
   },
+
 
   pushToStorage(cb) {
 
@@ -216,9 +243,10 @@ chrome.storage.local.get(null, (oldStorage) => {
     antiCensorRu._currentPacProviderKey = oldStorage._currentPacProviderKey;
     antiCensorRu.lastPacUpdateStamp = oldStorage.lastPacUpdateStamp || antiCensorRu.lastPacUpdateStamp;
     console.log( 'Last PAC update was on', new Date(antiCensorRu.lastPacUpdateStamp).toLocaleString('ru-RU') );
-    const customHosts = oldStorage.customHosts;
-    if (customHosts) {
-      antiCensorRu.customHosts = customHosts;
+
+    const customs = oldStorage.customs;
+    if (customs) {
+      //antiCensorRu.customs = customs;
     }
   }
 
@@ -284,7 +312,7 @@ chrome.storage.local.get(null, (oldStorage) => {
 
     Version 0.0.0.15
 
-      * Added this.customHosts
+      * Added this.customs
       * Added this.pacProviders[ some ].ifCustomizable
 
     Version 0.0.0.10
@@ -469,11 +497,16 @@ function updatePacProxyIps(provider, cb) {
 
 function setPacScriptFromProvider(provider, cb) {
 
+  const extractCustoms = function (pacData) {
+  
+    return eval(pacData);
+  };
+
   cb = asyncLogGroup('Getting pac script from provider...', provider.pacUrl, cb);
 
   httpGet(
     provider.pacUrl,
-    (err, res) => {
+    (err, pacData) => {
 
       if (err) {
         err.clarification = {
@@ -482,6 +515,11 @@ function setPacScriptFromProvider(provider, cb) {
         };
         return cb(err);
       }
+
+      if( provider.ifCustomizable ) {
+        //provider.defaultCustoms = extractCustoms( pacData ); // STOPPED HERE
+      }
+
       console.log('Clearing chrome proxy settings...');
       return chrome.proxy.settings.clear({}, () => {
 
@@ -489,7 +527,7 @@ function setPacScriptFromProvider(provider, cb) {
           mode: 'pac_script',
           pacScript: {
             mandatory: false,
-            data: res
+            data: pacData
           }
         };
         console.log('Setting chrome proxy settings...');

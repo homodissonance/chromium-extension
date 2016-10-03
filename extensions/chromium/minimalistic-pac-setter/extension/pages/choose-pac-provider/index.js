@@ -73,12 +73,12 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
     // On/off site exceptions.
 
     const providerName = radio.id;
-    const exceptionsStyle = document.querySelector('#custom-hosts-settings').style;
+    const customizable = document.querySelectorAll('.customizable')
     if ( providerName !== 'none' && antiCensorRu.pacProviders[ providerName ].ifCustomizable ) {
-      exceptionsStyle.display = 'block';
+      customizable.forEach( (s) => s.style.display = 'block' );
     }
     else {
-      exceptionsStyle.display = 'none';
+      customizable.forEach( (s) => s.style.display = 'none'  );
     }
 
   };
@@ -90,16 +90,20 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
 
   };
 
-  var ul = document.querySelector('#list-of-providers');
-  var _firstChild = ul.firstChild;
-  for( const providerKey of Object.keys(antiCensorRu.pacProviders) ) {
+  +function () {
 
-    var li = document.createElement('li');
-    li.innerHTML = `<input type="radio" name="pacProvider" id="${providerKey}"> <label for="${providerKey}">${providerKey}</label> <a href class="link-button pac-update-button">[обновить]</a>`;
-    li.querySelector('.link-button').onclick = () => { triggerChosenProvider(); return false; };
-    ul.insertBefore( li, _firstChild );
+    const ul = document.querySelector('#list-of-providers');
+    const _firstChild = ul.firstChild;
+    for( const providerKey of Object.keys(antiCensorRu.pacProviders) ) {
 
-  }
+      const li = document.createElement('li');
+      li.innerHTML = `<input type="radio" name="pacProvider" id="${providerKey}"> <label for="${providerKey}">${providerKey}</label> <a href class="link-button pac-update-button">[обновить]</a>`;
+      li.querySelector('.link-button').onclick = () => { triggerChosenProvider(); return false; };
+      ul.insertBefore( li, _firstChild );
+
+    }
+
+  }();
 
   const radios = [].slice.apply( document.querySelectorAll('[name=pacProvider]') );
   for(const radio of radios) {
@@ -180,18 +184,25 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
 
   // Custom hosts
 
-  if ( !antiCensorRu.customHosts.ifEnabled ) {
-    return;
-  }
+  const proxyAlso = document.querySelector('#proxy-also');
+  proxyAlso.onchange = function () {
 
-  document.querySelector('#proxy-also').checked = true;
+    antiCensorRu.customs.exceptions.ifEnabled = this.checked;
+    antiCensorRu.pushToStorage();
+
+  };
+  proxyAlso.checked = antiCensorRu.customs.exceptions.ifEnabled;
+
+/*  if ( !proxyAlso.checked ) {
+    return;
+  }*/
 
   const removeCustomHost = function () {
 
     const li = this.parentNode;
     const host = li.querySelector('span').innerText;
     li.remove();
-    delete antiCensorRu.customHosts.hash[ punycode.toASCII( host ) ];
+    delete antiCensorRu.customs.exceptions.hostsHash[ punycode.toASCII( host ) ];
     antiCensorRu.pushToStorage();
     return false;
 
@@ -206,7 +217,7 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
 
   };
 
-  for( let host of Object.keys( antiCensorRu.customHosts.hash ).sort() ) {
+  for( let host of Object.keys( antiCensorRu.customs.exceptions.hostsHash ).sort() ) {
     appendHost( host );
   }
 
@@ -249,11 +260,45 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
   document.querySelector('#add-host-button').onclick = () => {
 
     const punyHost = handleHostname( hostToAdd.value );
-    appendHost( punyHost );
-    antiCensorRu.customHosts.hash[ punyHost ] = true;
-    antiCensorRu.pushToStorage();
-    // TODO: bbbbbb
+    const hosts = antiCensorRu.customs.exceptions.hostsHash;
+    if ( !(punyHost in hosts) ) {
+      appendHost( punyHost );
+      antiCensorRu.customs.exceptions.hostsHash[ punyHost ] = true;
+      // TODO: update pac
+      antiCensorRu.pushToStorage();
+    }
 
   };
 
+  // Security
+
+  const sproxy = document.querySelector('#only-https-proxy');
+  const surls  = document.querySelector('#only-https-urls')
+  const types = antiCensorRu.customs.proxy.typesHash;
+  sproxy.onchange = function (event) {
+
+    if (this.checked) {
+      Object.keys(types).forEach( (t) => types[t] = false );
+      types.HTTPS = true;
+    }
+    else {
+      Object.keys(types).forEach( (t) => types[t] = true );
+    }
+    antiCensorRu.pushToStorage();
+
+  };
+  surls.onchange = function (event) {
+
+    antiCensorRu.customs.ifHttpsUrlsOnly = this.checked;
+    antiCensorRu.pushToStorage();
+
+  };
+
+  sproxy.checked = antiCensorRu.customs.proxy.isHttpsOnly();
+  surls.checked = antiCensorRu.customs.ifHttpsUrlsOnly;
+
+  // Debug
+
+  const dlink = document.querySelector('#debug-link');
+  dlink.onclick = () => chrome.tabs.create({ url: chrome.extension.getURL('./pages/debug/index.html') });
 });
