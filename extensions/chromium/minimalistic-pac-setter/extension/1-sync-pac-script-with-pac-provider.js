@@ -35,7 +35,8 @@ window.antiCensorRu = {
       }
     },
     Оба_и_на_свитчах: {
-      pacUrl: 'https://drive.google.com/uc?export=download&id=0B-ZCVSvuNWf0akpCOURNS2VCTmc',
+      //pacUrl: 'https://drive.google.com/uc?export=download&id=0B-ZCVSvuNWf0akpCOURNS2VCTmc',
+      pacUrl: 'https://drive.google.com/uc?export=download&id=0B-ZCVSvuNWf0WGczNmJzY3gzMWc', // Beta
       proxyHosts: ['proxy.antizapret.prostovpn.org', 'gw2.anticenz.org'],
       proxyIps: {
         '195.123.209.38': 'proxy.antizapret.prostovpn.org',
@@ -43,9 +44,55 @@ window.antiCensorRu = {
         '5.196.220.114':  'gw2.anticenz.org'
       },
       ifCustomizable: true,
-      servers: {
-        PROXY: ['proxy.antizapret.prostovpn.org:3128', 'gw2.anticenz.org:8080'],
-        HTTPS: ['proxy.antizapret.prostovpn.org:3143', 'gw2.anticenz.org:443']
+      configs: {
+        default: {},
+        custom: {},
+        get: function (path) {
+
+          let default = this.default;
+          let custom  = this.custom;
+          path = path.split('.');
+
+          let result;
+          let prop = path.shift();
+          do {
+            if ( !(prop in custom) ) {
+              result = default[ prop ];
+              custom = {};
+              break;
+            }
+            if ( prop in default ) {
+              default = default[ prop ]
+            }
+          } while( path.length );
+          if ( path.length ) {
+            throw new Exception() // STOPPED
+          }
+
+          const deepMerge = (target, source) => {
+
+            const merged = {};
+            const props = new Set(target);
+            Object.keys(source).forEach( (p) => props.add(p) );
+            for( const prop of props ) {
+              const tvalue = target[ prop ];
+              const svalue = source[ prop ];
+              if ( !(tvalue && tvalue.constructor === Object) ) {
+                merged[ prop ] = svalue || tvalue;
+              }
+              else {
+                if ( !(svalue && svalue.constructor === Object) ) {
+                  throw new Exception('Merge conflict: can\'t override object with non-object.');
+                }
+                merged[ prop ] = deepMerge(value, source[ prop ])
+              }
+            }
+            return merged;
+
+          };
+          return deepMerge(this.default, this.custom);
+
+        }
       }
     }
   },
@@ -244,9 +291,9 @@ chrome.storage.local.get(null, (oldStorage) => {
     antiCensorRu.lastPacUpdateStamp = oldStorage.lastPacUpdateStamp || antiCensorRu.lastPacUpdateStamp;
     console.log( 'Last PAC update was on', new Date(antiCensorRu.lastPacUpdateStamp).toLocaleString('ru-RU') );
 
-    const customs = oldStorage.customs;
-    if (customs) {
-      //antiCensorRu.customs = customs;
+    const configs = oldStorage.configs;
+    if (configs) {
+      antiCensorRu.configs = configs;
     }
   }
 
@@ -497,9 +544,17 @@ function updatePacProxyIps(provider, cb) {
 
 function setPacScriptFromProvider(provider, cb) {
 
-  const extractCustoms = function (pacData) {
+  const extractConfigs = function (pacData) {
   
-    return eval(pacData);
+    const confRe = /{"_begin":"CONFIGS_BEGIN",[\s\S]*?"_end":"CONFIGS_END"}/g;
+    const confJson = confRe.exec( pacData )[0]; // TODO: handle malformed script.
+    const configs = JSON.parse( confJson );
+    if (configs.version !== chrome.runtime.getManifest().version) {
+      // Configs migration.
+      // TODO:
+    }
+    return configs;
+
   };
 
   cb = asyncLogGroup('Getting pac script from provider...', provider.pacUrl, cb);
@@ -510,14 +565,14 @@ function setPacScriptFromProvider(provider, cb) {
 
       if (err) {
         err.clarification = {
-          message: 'Не удалось скачать PAC-скрипт с адреса: '+ provider.pacUrl +'.',
+          message: 'Не удалось скачать PAC-скрипт с адреса: ' + provider.pacUrl + '.',
           prev: err.clarification
         };
         return cb(err);
       }
 
       if( provider.ifCustomizable ) {
-        //provider.defaultCustoms = extractCustoms( pacData ); // STOPPED HERE
+        provider.configs.default = extractConfigs( pacData );
       }
 
       console.log('Clearing chrome proxy settings...');

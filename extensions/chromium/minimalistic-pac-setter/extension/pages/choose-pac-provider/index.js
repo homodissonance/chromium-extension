@@ -187,7 +187,7 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
   const proxyAlso = document.querySelector('#proxy-also');
   proxyAlso.onchange = function () {
 
-    antiCensorRu.customs.exceptions.ifEnabled = this.checked;
+    antiCensorRu.configs.exceptions.ifEnabled = this.checked;
     antiCensorRu.pushToStorage();
 
   };
