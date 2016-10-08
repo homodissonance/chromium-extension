@@ -13,7 +13,7 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
     status.classList.remove('off');
     status.innerHTML = msg;
 
-  }
+  };
 
   const antiCensorRu = backgroundPage.antiCensorRu;
 
@@ -187,11 +187,11 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
   const proxyAlso = document.querySelector('#proxy-also');
   proxyAlso.onchange = function () {
 
-    antiCensorRu.configs.exceptions.ifEnabled = this.checked;
+    antiCensorRu.configs.set('exceptions.ifEnabled', this.checked);
     antiCensorRu.pushToStorage();
 
   };
-  proxyAlso.checked = antiCensorRu.customs.exceptions.ifEnabled;
+  proxyAlso.checked = antiCensorRu.configs.get('exceptions.ifEnabled');
 
 /*  if ( !proxyAlso.checked ) {
     return;
@@ -202,13 +202,13 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
     const li = this.parentNode;
     const host = li.querySelector('span').innerText;
     li.remove();
-    delete antiCensorRu.customs.exceptions.hostsHash[ punycode.toASCII( host ) ];
+    delete antiCensorRu.configs.get('exceptions.hostsHash')[ punycode.toASCII( host ) ];
     antiCensorRu.pushToStorage();
     return false;
 
   };
 
-  const appendHost = (host) => {
+  const appendHostToUi = (host) => {
 
     const li = document.createElement('li');
     li.innerHTML = '<span>' + punycode.toUnicode( host ) + '</span> <a href style="float: right">[удалить]</a>';
@@ -217,8 +217,8 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
 
   };
 
-  for( let host of Object.keys( antiCensorRu.customs.exceptions.hostsHash ).sort() ) {
-    appendHost( host );
+  for( let host of Object.keys( antiCensorRu.configs.get('exceptions.hostsHash') ).sort() ) {
+    appendHostToUi( host );
   }
 
   const hostToAdd = document.querySelector('#host-to-add');
@@ -262,8 +262,8 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
     const punyHost = handleHostname( hostToAdd.value );
     const hosts = antiCensorRu.customs.exceptions.hostsHash;
     if ( !(punyHost in hosts) ) {
-      appendHost( punyHost );
-      antiCensorRu.customs.exceptions.hostsHash[ punyHost ] = true;
+      appendHostToUi( punyHost );
+      antiCensorRu.configs.set('exceptions.hostsHash[ punyHost ]', true); // STOPPED HERE
       // TODO: update pac
       antiCensorRu.pushToStorage();
     }

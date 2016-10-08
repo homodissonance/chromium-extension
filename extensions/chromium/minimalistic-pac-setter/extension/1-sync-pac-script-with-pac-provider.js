@@ -43,32 +43,45 @@ window.antiCensorRu = {
         '2a02:27ac::10':  'proxy.antizapret.prostovpn.org',
         '5.196.220.114':  'gw2.anticenz.org'
       },
+
       ifCustomizable: true,
       configs: {
         default: {},
         custom: {},
+        set: function (path, value) {
+
+          path = path.split('.');
+          let custom = this.custom;
+          while( path.length > 1 ) {
+            let prop = path.shift();
+            let cvalue = custom[ prop ];
+            if (!cvalue) {
+              custom[ prop ] = {};
+            }
+            custom = custom[ prop ]
+          }
+          custom[ path.shift() ] = value;
+
+        },
         get: function (path) {
 
-          let default = this.default;
+          let dflt = this.default;
           let custom  = this.custom;
           path = path.split('.');
 
-          let result;
-          let prop = path.shift();
-          do {
-            if ( !(prop in custom) ) {
-              result = default[ prop ];
-              custom = {};
-              break;
+          while( path.length ) {
+            let prop  = path.shift();
+            if (!dflt && !custom) {
+              throw new Error('Can\'t get ' + prop + ' of undefined.');
             }
-            if ( prop in default ) {
-              default = default[ prop ]
-            }
-          } while( path.length );
-          if ( path.length ) {
-            throw new Exception() // STOPPED
+            dflt      = dflt   && dflt[ prop ];
+            custom    = custom && custom[ prop ];
           }
-
+          const ifBothObjects = [dflt, custom].every( (dc) => dc && dc.constructor === Object );
+          if ( !ifBothObjects ) {
+            const obj = custom || dflt;
+            return JSON.parse( JSON.stringify( { foo: obj } ) ).foo; // Obj MUSTN'T have Date property.
+          }
           const deepMerge = (target, source) => {
 
             const merged = {};
@@ -82,7 +95,7 @@ window.antiCensorRu = {
               }
               else {
                 if ( !(svalue && svalue.constructor === Object) ) {
-                  throw new Exception('Merge conflict: can\'t override object with non-object.');
+                  throw new Error('Merge conflict: can\'t override object with non-object.');
                 }
                 merged[ prop ] = deepMerge(value, source[ prop ])
               }
@@ -90,7 +103,7 @@ window.antiCensorRu = {
             return merged;
 
           };
-          return deepMerge(this.default, this.custom);
+          return deepMerge(dflt, custom);
 
         }
       }
@@ -116,37 +129,6 @@ window.antiCensorRu = {
   lastPacUpdateStamp: 0,
 
   _periodicUpdateAlarmReason: 'Периодичное обновление PAC-скрипта Антизапрет',
-
-  customs: {
-    ifHttpsUrlsOnly: false,
-    proxyString: false,
-    exceptions: {
-      ifEnabled: true,
-      hostsHash: {
-        'archive.org': true,
-        'bitcoin.org': true
-      }
-    },
-    proxy: {
-      typesHash: {
-        DIRECT: true,
-        PROXY:  true,
-        HTTP:   true,
-        HTTPS:  true,
-        SOCKS:  true,
-        SOCKS4: true,
-        SOCKS5: true,
-      },
-      isHttpsOnly: function () {
-
-        const types = this.typesHash;
-        return Object.keys(types).every( (t) => t === 'HTTPS' ? types[t] : !types[t] );
-
-      },
-      serversHash: {}
-    }
-  },
-
 
   pushToStorage(cb) {
 
