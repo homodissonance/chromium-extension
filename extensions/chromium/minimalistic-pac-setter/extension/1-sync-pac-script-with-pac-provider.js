@@ -48,62 +48,99 @@ window.antiCensorRu = {
       configs: {
         default: {},
         custom: {},
+        getCustom: function (path, ifPathMustExist) {
+
+          const path = _path.split('.');
+          let custom = this.custom;
+          const checkIfPropExist = (obj, prop) => {
+
+            const ifOwn = !obj.hasOwnProperty(prop);
+            if ( !ifOwn && ifPathMustExist ) {
+              throw new Error('Can\'t get prop in custom configs: ' + prop + ' in ' + _path);
+            }
+            return ifOwn;
+
+          };
+          while( path.length > 1 ) {
+            let prop = path.shift();
+            if ( checkIfPropExist(custom, prop) ) {
+              custom[ prop ] = {};
+            }
+            custom = custom[ prop ];
+          }
+          checkIfPropExist(custom, prop);
+          return custom[ prop ];
+
+        },
         set: function (path, value) {
 
           path = path.split('.');
+          const prop = path.pop();
           let custom = this.custom;
-          while( path.length > 1 ) {
-            let prop = path.shift();
-            let cvalue = custom[ prop ];
-            if (!cvalue) {
-              custom[ prop ] = {};
-            }
-            custom = custom[ prop ]
+          if ( path.length ) {
+            custom = this.getCustom( path.join('.') );
           }
-          custom[ path.shift() ] = value;
+          custom[ prop ] = value;
+          window.antiCensorRu.pushToStorage();
 
         },
         get: function (path) {
 
-          let dflt = this.default;
+          let defauld = this.default;
           let custom  = this.custom;
           path = path.split('.');
 
+          const ifHasNoSuchProperty = {
+            defauld: false,
+            custom: false
+          };
           while( path.length ) {
             let prop  = path.shift();
-            if (!dflt && !custom) {
+            if (!defauld && !custom) {
               throw new Error('Can\'t get ' + prop + ' of undefined.');
             }
-            dflt      = dflt   && dflt[ prop ];
-            custom    = custom && custom[ prop ];
+            ifHasNoSuchProperty.defauld = !( defauld && defauld.hasOwnProperty(prop) );
+            ifHasNoSuchProperty.custom  = !( custom  && custom.hasOwnProperty(prop) );
+            defauld = defauld && defauld[ prop ];
+            custom  = custom  && custom[ prop ];
           }
-          const ifBothObjects = [dflt, custom].every( (dc) => dc && dc.constructor === Object );
-          if ( !ifBothObjects ) {
-            const obj = custom || dflt;
-            return JSON.parse( JSON.stringify( { foo: obj } ) ).foo; // Obj MUSTN'T have Date property.
-          }
-          const deepMerge = (target, source) => {
+          const clone = (value) => JSON.parse( JSON.stringify( { foo: value } ) ).foo; // Obj MUSTN'T have Date property.
+          const deepMerge = (target, source, ifTargetNotOwn, ifSourceNotOwn) => {
 
+            if ( ifTargetNotOwn && ifSourceNotOwn ) {
+              throw new Error('At least one value must be flagged as own property.');
+            }
+            if ( ifTargetNotOwn ) {
+              return clone(source);
+            }
+            if ( ifSourceNotOwn ) {
+              return clone(target);
+            }
+            // Types must match.
+            if ( !(target && source ? target.constructor !== source.constructor : typeof(target) !== typeof(source) ) ) {
+              throw new Error(
+                'You can\'t change type of default configs: default is ' + target + ', custom is ' + source
+              );
+            }
+            const ifTargetPlain = !(tvalue && tvalue.constructor === Object);
+            const ifSourcePlain = !(svalue && svalue.constructor === Object);
+            const ifBothPlain = ifTargetPlain && ifSourcePlain;
+            if ( ifBothPlain ) {
+              return clone(source);
+            }
+            // Both objects.
             const merged = {};
-            const props = new Set(target);
+            // Get all props of both.
+            const props = new Set(Object.keys(target));
             Object.keys(source).forEach( (p) => props.add(p) );
+
             for( const prop of props ) {
-              const tvalue = target[ prop ];
-              const svalue = source[ prop ];
-              if ( !(tvalue && tvalue.constructor === Object) ) {
-                merged[ prop ] = svalue || tvalue;
-              }
-              else {
-                if ( !(svalue && svalue.constructor === Object) ) {
-                  throw new Error('Merge conflict: can\'t override object with non-object.');
-                }
-                merged[ prop ] = deepMerge(value, source[ prop ])
-              }
+              merged[ prop ] = deepMerge(target[ prop ], source[ prop ], target.hasOwnProperty(prop), source.hasOwnProperty(prop) );
             }
             return merged;
 
           };
-          return deepMerge(dflt, custom);
+          return deepMerge(defauld, custom, ifHasNoSuchProperty.defauld, ifHasNoSuchProperty.custom );
 
         }
       }
@@ -534,6 +571,8 @@ function setPacScriptFromProvider(provider, cb) {
     if (configs.version !== chrome.runtime.getManifest().version) {
       // Configs migration.
       // TODO:
+      alert('I feel so wrong!');
+      throw new Error('So wrong!');
     }
     return configs;
 

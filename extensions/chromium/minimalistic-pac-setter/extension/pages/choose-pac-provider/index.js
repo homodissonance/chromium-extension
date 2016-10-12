@@ -187,7 +187,7 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
   const proxyAlso = document.querySelector('#proxy-also');
   proxyAlso.onchange = function () {
 
-    antiCensorRu.configs.set('exceptions.ifEnabled', this.checked);
+    antiCensorRu.configs.setCustom('exceptions.ifEnabled', this.checked);
     antiCensorRu.pushToStorage();
 
   };
@@ -202,7 +202,7 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
     const li = this.parentNode;
     const host = li.querySelector('span').innerText;
     li.remove();
-    delete antiCensorRu.configs.get('exceptions.hostsHash')[ punycode.toASCII( host ) ];
+    delete antiCensorRu.configs.getCustom('exceptions.hostsHash')[ punycode.toASCII( host ) ];
     antiCensorRu.pushToStorage();
     return false;
 
@@ -260,12 +260,11 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
   document.querySelector('#add-host-button').onclick = () => {
 
     const punyHost = handleHostname( hostToAdd.value );
-    const hosts = antiCensorRu.customs.exceptions.hostsHash;
+    const hosts = antiCensorRu.configs.getCustom('exceptions.hostsHash');
     if ( !(punyHost in hosts) ) {
       appendHostToUi( punyHost );
-      antiCensorRu.configs.set('exceptions.hostsHash[ punyHost ]', true); // STOPPED HERE
+      hosts[ punyHost ] = true;
       // TODO: update pac
-      antiCensorRu.pushToStorage();
     }
 
   };
@@ -274,28 +273,20 @@ chrome.runtime.getBackgroundPage( (backgroundPage) => {
 
   const sproxy = document.querySelector('#only-https-proxy');
   const surls  = document.querySelector('#only-https-urls')
-  const types = antiCensorRu.customs.proxy.typesHash;
+
+  sproxy.checked  = antiCensorRu.configs.get('ifHttpsProxyOnly');
+  surls.checked   = antiCensorRu.configs.get('ifHttpsUrlsOnly');
+
   sproxy.onchange = function (event) {
 
-    if (this.checked) {
-      Object.keys(types).forEach( (t) => types[t] = false );
-      types.HTTPS = true;
-    }
-    else {
-      Object.keys(types).forEach( (t) => types[t] = true );
-    }
-    antiCensorRu.pushToStorage();
+    antiCensorRu.configs.set('ifHttpsProxyOnly', this.checked);
 
   };
   surls.onchange = function (event) {
 
-    antiCensorRu.customs.ifHttpsUrlsOnly = this.checked;
-    antiCensorRu.pushToStorage();
+    antiCensorRu.configs.set('ifHttpsUrlsOnly', this.checked);
 
   };
-
-  sproxy.checked = antiCensorRu.customs.proxy.isHttpsOnly();
-  surls.checked = antiCensorRu.customs.ifHttpsUrlsOnly;
 
   // Debug
 
