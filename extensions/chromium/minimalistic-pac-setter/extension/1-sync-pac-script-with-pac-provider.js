@@ -564,7 +564,7 @@ function updatePacProxyIps(provider, cb) {
 function setPacScriptFromProvider(provider, cb) {
 
   const extractConfigs = function (pacData) {
-  
+
     const confRe = /{"_begin":"CONFIGS_BEGIN",[\s\S]*?"_end":"CONFIGS_END"}/g;
     const confJson = confRe.exec( pacData )[0]; // TODO: handle malformed script.
     const configs = JSON.parse( confJson );
