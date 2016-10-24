@@ -1,5 +1,7 @@
 # [Maintainer Needed! Нужен разработчик!](https://github.com/anticensorship-russia/chromium-extension/issues/2)
 
+Also, if you __unstar__, please, send [me](https://github.com/ilyaigpetrov) a note why you do so.
+
 # Russian Anti-Censorship on PAC-Scripts
 
 This repo contains:
