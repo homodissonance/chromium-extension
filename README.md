@@ -1,3 +1,5 @@
+# [Maintainer Needed](https://github.com/anticensorship-russia/chromium-extension/issues/2)
+
 # Russian Anti-Censorship on PAC-Scripts
 
 This repo contains:
