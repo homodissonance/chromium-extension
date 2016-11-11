@@ -159,6 +159,7 @@ window.antiCensorRu = {
 
   get pacProvider() { return this.pacProviders[this.currentPacProviderKey] },
 
+  get configs() { return this.pacProvider.configs; },
   /*
     Is it the first time extension installed? Do something, e.g. initiate PAC sync.
   */

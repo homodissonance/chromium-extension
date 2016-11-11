@@ -1,4 +1,6 @@
-# 1-sync-pac-script-with-pac-provider.js
+# Old Architecture
+
+## 1-sync-pac-script-with-pac-provider.js
 
 ```js
 
@@ -32,6 +34,8 @@ setPacScriptFromProvider
 
 ```js
 
+/*##### COMMON BASICS #####*/
+
 class PacScript {
 
   Description:
@@ -53,20 +57,24 @@ class PacScript {
         this.lastInstallStamp = now
         this.onInstall._callListeners()
 
-    onInstall:
+    onInstall
       addListener
       _callListeners
-        
+
     uninstall
       CALLS:
         chrome.proxy.clear
 
 };
 
+/*##### PAC CONFIGS #####*/
+
 class PacConfigPlugin {
 
   Fields:
+
     name
+    version
     scheme
 
 };
@@ -111,7 +119,7 @@ class PacConfigs {
         sets prop of custom configs
         this.assertScheme()
 
-    assertScheme(configs )
+    assertScheme(configs)
       CALLS:
         configs ? check(configs) : check(this.get())
 };
@@ -155,15 +163,17 @@ class AnticensorPacScript extends ConfigurablePacScript {
 
       } );
     }
-   
+
     assertScheme()
     extractConfigs(pacStr)
       assert( configs.get('plugins.anticensorship') === "0.0.0.15" );
       super.extractConfigs();
-  
+
     applyConfigs(pacStr)
 
 };
+
+/*##### SYNCING PAC #####*/
 
 const SyncingPacScript = (SuperPacScript) => class extends SuperPacScript {
 
